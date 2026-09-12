@@ -2,6 +2,7 @@ export type SystemUser = {
   email: string;
   name: string;
   role: string;
+  active?: boolean;
 };
 
 export type PatientSummary = {

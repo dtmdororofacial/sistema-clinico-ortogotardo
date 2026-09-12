@@ -14,6 +14,7 @@ Aplicação clínica estática para GitHub Pages, com autenticação Google e Go
 - registro profissional de diagnóstico de DTM, avaliação de bruxismo, procedimentos e plano;
 - ficha de retorno no mesmo sistema;
 - login Google, lista de e-mails autorizados, acesso por vínculo com o paciente e bloqueio de edição simultânea por atendimento;
+- área “Gerenciar acessos”, visível somente para a administração, para cadastrar, atualizar e desativar usuários na base do sistema;
 - rascunhos retomáveis, versões preservadas, correção de um atendimento finalizado e trilha de auditoria;
 - PDFs detalhados em formato de tabela, mostrando somente os campos pertinentes no resumo inicial e todo o conteúdo registrado no retorno.
 
