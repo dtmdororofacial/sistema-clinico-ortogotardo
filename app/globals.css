@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.65);
+  --radius-md: calc(var(--radius) * 0.82);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.55);
+}
+
+:root {
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  --brand-navy: #102f49;
+  --brand-blue: #075184;
+  --brand-blue-soft: #edf6fb;
+  --brand-orange: #f5803e;
+  --brand-orange-dark: #d86629;
+  --brand-orange-soft: rgba(245, 128, 62, 0.2);
+  --page: #f5f8fa;
+  --background: #f5f8fa;
+  --foreground: #17202a;
+  --card: #ffffff;
+  --card-foreground: #17202a;
+  --popover: #ffffff;
+  --popover-foreground: #17202a;
+  --primary: #075184;
+  --primary-foreground: #ffffff;
+  --secondary: #edf6fb;
+  --secondary-foreground: #102f49;
+  --muted: #eef2f5;
+  --muted-foreground: #637180;
+  --accent: #fff1e8;
+  --accent-foreground: #9a4319;
+  --destructive: #b42318;
+  --border: #dce3e8;
+  --input: #ccd7df;
+  --ring: #70a9cb;
+  --radius: 0.8rem;
+}
+
+.dark {
+  --page: #0e2435;
+  --background: #0e2435;
+  --foreground: #f2f7fa;
+  --card: #153249;
+  --card-foreground: #f2f7fa;
+  --popover: #153249;
+  --popover-foreground: #f2f7fa;
+  --primary: #72b6df;
+  --primary-foreground: #071d2d;
+  --secondary: #1d4059;
+  --secondary-foreground: #f2f7fa;
+  --muted: #1c3a50;
+  --muted-foreground: #b3c5d1;
+  --accent: #63391f;
+  --accent-foreground: #fff1e8;
+  --destructive: #ff8b82;
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.2);
+  --ring: #72b6df;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-width: 320px;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
