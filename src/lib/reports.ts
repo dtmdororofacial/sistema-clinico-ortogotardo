@@ -77,7 +77,7 @@ function labelFor(id: string) {
   if (palpationMatch) {
     const [, , structure, side, field] = palpationMatch;
     const fieldLabels: Record<string, string> = {
-      status: 'Resultado', intensity: 'Intensidade', familiar: 'Dor familiar', referred: 'Dor referida', referredTo: 'Local da referência', headache: 'Cefaleia familiar',
+      status: 'Dor', intensity: 'Intensidade', familiar: 'Dor familiar', referred: 'Dor referida', referredTo: 'Local da referência', headache: 'Cefaleia familiar',
     };
     return `${structure.replaceAll('_', ' ')} — lado ${side} — ${fieldLabels[field]}`;
   }

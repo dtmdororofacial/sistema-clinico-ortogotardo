@@ -34,6 +34,27 @@ function SextantMatrix({ prefix, rows, answers, onChange }: { prefix: string; ro
   return <div className="overflow-x-auto"><table className="w-full min-w-[680px] border-collapse text-xs"><thead><tr><th className="border border-slate-200 bg-slate-50 p-2 text-left">Achado</th>{[1, 2, 3, 4, 5, 6].map((sextant) => <th key={sextant} className="border border-slate-200 bg-slate-50 p-2">Sextante {sextant}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row}><th className="border border-slate-200 p-2 text-left font-medium">{row}</th>{[1, 2, 3, 4, 5, 6].map((sextant) => { const id = `${prefix}_${safeKey(row)}_s${sextant}`; return <td key={id} className="border border-slate-200 p-1"><Input aria-label={`${row}, sextante ${sextant}`} type="number" min="0" className="h-9 min-w-16" value={answers[id] === undefined ? '' : Number(answers[id])} onChange={(event) => onChange(id, event.target.value === '' ? '' : Number(event.target.value))} /></td>; })}</tr>)}</tbody></table></div>;
 }
 
+function BinaryChoice({ label, value, onChange }: { label: string; value: string; onChange: (value: 'Sim' | 'Não') => void }) {
+  return (
+    <fieldset className="text-[11px] font-medium text-slate-600">
+      <legend>{label}</legend>
+      <div className="mt-1 grid grid-cols-2 gap-1">
+        {(['Sim', 'Não'] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={value === option}
+            onClick={() => onChange(option)}
+            className={`h-9 rounded-lg border text-xs font-semibold ${value === option ? 'border-[var(--brand-blue)] bg-[var(--brand-blue)] text-white' : 'border-slate-200 bg-white text-slate-700'}`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 export function PalpationMatrix({ answers, onChange, prefix = '' }: { answers: ExamAnswers; onChange: (id: string, value: string | number | string[]) => void; prefix?: string }) {
   return (
     <div className="space-y-3">
@@ -46,22 +67,34 @@ export function PalpationMatrix({ answers, onChange, prefix = '' }: { answers: E
               {(['direito', 'esquerdo'] as const).map((side) => {
                 const status = String(answers[`${base}_${side}_status`] ?? 'Não avaliado');
                 const hasPain = status === 'Dor';
+                const painValue = hasPain ? 'Sim' : status === 'Sem dor' ? 'Não' : '';
+                const resetSide = () => {
+                  onChange(`${base}_${side}_status`, 'Não avaliado');
+                  onChange(`${base}_${side}_intensity`, '');
+                  onChange(`${base}_${side}_familiar`, '');
+                  onChange(`${base}_${side}_referred`, '');
+                  onChange(`${base}_${side}_referredTo`, '');
+                  onChange(`${base}_${side}_headache`, '');
+                };
+                const changePain = (value: 'Sim' | 'Não') => {
+                  onChange(`${base}_${side}_status`, value === 'Sim' ? 'Dor' : 'Sem dor');
+                  if (value === 'Não') {
+                    onChange(`${base}_${side}_intensity`, '');
+                    onChange(`${base}_${side}_familiar`, '');
+                    onChange(`${base}_${side}_referred`, '');
+                    onChange(`${base}_${side}_referredTo`, '');
+                    onChange(`${base}_${side}_headache`, '');
+                  }
+                };
                 return (
                   <div key={side} className="rounded-xl bg-slate-50 p-3">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs font-bold capitalize text-slate-700">Lado {side}</span>
-                      <select
-                        value={status}
-                        onChange={(event) => onChange(`${base}_${side}_status`, event.target.value)}
-                        className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs"
-                      >
-                        <option>Não avaliado</option>
-                        <option>Sem dor</option>
-                        <option>Dor</option>
-                      </select>
+                      {status === 'Não avaliado' ? <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-semibold text-slate-600">Não avaliado</span> : <button type="button" onClick={resetSide} className="text-[10px] font-semibold text-slate-500 underline underline-offset-2">Marcar como não avaliado</button>}
                     </div>
+                    <div className="mt-3"><BinaryChoice label="Há dor?" value={painValue} onChange={changePain} /></div>
                     {hasPain ? (
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <fieldset className="text-[11px] font-medium text-slate-600">
                           <legend>Intensidade da dor (0–3)</legend>
                           <div className="mt-1 grid grid-cols-4 gap-1">
@@ -81,29 +114,11 @@ export function PalpationMatrix({ answers, onChange, prefix = '' }: { answers: E
                             })}
                           </div>
                         </fieldset>
-                        <label className="text-[11px] font-medium text-slate-600">
-                          Dor familiar
-                          <select className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2" value={String(answers[`${base}_${side}_familiar`] ?? 'Não')} onChange={(event) => onChange(`${base}_${side}_familiar`, event.target.value)}>
-                            <option>Não</option><option>Sim</option>
-                          </select>
-                        </label>
-                        <label className="text-[11px] font-medium text-slate-600">
-                          Dor referida
-                          <select className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2" value={String(answers[`${base}_${side}_referred`] ?? 'Não')} onChange={(event) => onChange(`${base}_${side}_referred`, event.target.value)}>
-                            <option>Não</option><option>Sim</option>
-                          </select>
-                        </label>
-                        <label className="text-[11px] font-medium text-slate-600">
-                          Local da referência
-                          <Input className="mt-1 h-9" value={String(answers[`${base}_${side}_referredTo`] ?? '')} onChange={(event) => onChange(`${base}_${side}_referredTo`, event.target.value)} />
-                        </label>
+                        <BinaryChoice label="A dor é familiar?" value={String(answers[`${base}_${side}_familiar`] ?? '')} onChange={(value) => onChange(`${base}_${side}_familiar`, value)} />
+                        <BinaryChoice label="Há dor referida?" value={String(answers[`${base}_${side}_referred`] ?? '')} onChange={(value) => { onChange(`${base}_${side}_referred`, value); if (value === 'Não') onChange(`${base}_${side}_referredTo`, ''); }} />
+                        {answers[`${base}_${side}_referred`] === 'Sim' ? <label className="text-[11px] font-medium text-slate-600">Local da referência<Input className="mt-1 h-9" value={String(answers[`${base}_${side}_referredTo`] ?? '')} onChange={(event) => onChange(`${base}_${side}_referredTo`, event.target.value)} /></label> : null}
                         {structure.startsWith('Temporal') ? (
-                          <label className="text-[11px] font-medium text-slate-600 sm:col-span-2">
-                            Cefaleia familiar
-                            <select className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2" value={String(answers[`${base}_${side}_headache`] ?? 'Não')} onChange={(event) => onChange(`${base}_${side}_headache`, event.target.value)}>
-                              <option>Não</option><option>Sim</option>
-                            </select>
-                          </label>
+                          <div className="sm:col-span-2"><BinaryChoice label="Há cefaleia familiar?" value={String(answers[`${base}_${side}_headache`] ?? '')} onChange={(value) => onChange(`${base}_${side}_headache`, value)} /></div>
                         ) : null}
                       </div>
                     ) : null}

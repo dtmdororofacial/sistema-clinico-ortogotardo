@@ -10,9 +10,9 @@ Aplicação clínica estática para GitHub Pages, com autenticação Google e Go
 - questionário de sintomas DC/TMD e itens 1–4 da GCPS v2, com cálculo da intensidade característica da dor;
 - STAB de autorrelato e avaliação clínica, sem A7, A8, A9 e PHQ-4, que será preenchido separadamente na sala de espera, e sem pontuação global;
 - mapa de dor clicável, com imagem original e marcações transportadas para o PDF;
-- um único exame físico, nos modos DTM, bruxismo ou combinado, com intensidade da dor à palpação entre 0 e 3;
+- um único exame físico, nos modos DTM, bruxismo ou combinado, com intensidade da dor à palpação entre 0 e 3 e registros separados de presença de dor, familiaridade e referência;
 - registro profissional de diagnóstico de DTM, avaliação de bruxismo, procedimentos e plano;
-- ficha de retorno no mesmo sistema;
+- ficha de retorno no mesmo sistema, usando a mesma matriz estruturada de palpação do exame físico;
 - login Google, lista de e-mails autorizados, acesso por vínculo com o paciente e bloqueio de edição simultânea por atendimento;
 - área “Gerenciar acessos”, visível somente para a administração, para cadastrar, atualizar e desativar usuários na base do sistema;
 - rascunhos retomáveis, versões preservadas, correção de um atendimento finalizado e trilha de auditoria;
