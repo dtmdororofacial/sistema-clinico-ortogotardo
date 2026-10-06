@@ -59,7 +59,12 @@ export function AuthGate({ children }: { children: (session: AppSession) => Reac
 
   useEffect(() => {
     if (!backendConfigured || !idToken) return;
-    void callBackend<BootstrapResult>('bootstrap', idToken).then((result) => setBootstrap(result)).catch((cause) => {
+    void callBackend<BootstrapResult>('bootstrap', idToken).then((result) => {
+      const sessionToken = result.sessionToken || idToken;
+      sessionStorage.setItem('ortogotardo_id_token', sessionToken);
+      if (sessionToken !== idToken) setIdToken(sessionToken);
+      setBootstrap(result);
+    }).catch((cause) => {
       sessionStorage.removeItem('ortogotardo_id_token');
       setIdToken('');
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -79,8 +84,9 @@ export function AuthGate({ children }: { children: (session: AppSession) => Reac
           setLoading(true);
           callBackend<BootstrapResult>('bootstrap', credential)
             .then((result) => {
-              sessionStorage.setItem('ortogotardo_id_token', credential);
-              setIdToken(credential);
+              const sessionToken = result.sessionToken || credential;
+              sessionStorage.setItem('ortogotardo_id_token', sessionToken);
+              setIdToken(sessionToken);
               setBootstrap(result);
             })
             .catch((cause) => setError(cause instanceof Error ? cause.message : String(cause)))

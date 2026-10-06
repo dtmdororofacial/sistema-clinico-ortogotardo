@@ -13,7 +13,7 @@ Aplicação clínica estática para GitHub Pages, com autenticação Google e Go
 - um único exame físico, nos modos DTM, bruxismo ou combinado, com intensidade da dor à palpação entre 0 e 3 e registros separados de presença de dor, familiaridade e referência;
 - registro profissional de diagnóstico de DTM, avaliação de bruxismo, procedimentos e plano;
 - ficha de retorno no mesmo sistema, usando a mesma matriz estruturada de palpação do exame físico;
-- login Google, lista de e-mails autorizados, acesso por vínculo com o paciente e bloqueio de edição simultânea por atendimento;
+- login Google, sessão interna de até 16 horas, lista de e-mails autorizados, acesso por vínculo com o paciente e bloqueio de edição simultânea por atendimento;
 - área “Gerenciar acessos”, visível somente para a administração, para cadastrar, atualizar e desativar usuários na base do sistema;
 - rascunhos retomáveis, versões preservadas, correção de um atendimento finalizado e trilha de auditoria;
 - PDFs detalhados em formato de tabela, mostrando somente os campos pertinentes no resumo inicial e todo o conteúdo registrado no retorno.
@@ -81,7 +81,7 @@ Depois selecione **Implantar → Nova implantação → Aplicativo da Web**:
 - quem pode acessar: **qualquer pessoa**;
 - copie a URL terminada em `/exec`.
 
-O endpoint precisa aceitar a requisição sem abrir a tela do Apps Script, mas nenhuma operação clínica é liberada anonimamente: cada chamada valida no servidor o token de identidade Google, o Client ID, a validade do token e a aba `Usuários`.
+O endpoint precisa aceitar a requisição sem abrir a tela do Apps Script, mas nenhuma operação clínica é liberada anonimamente. O login inicial valida no servidor o token de identidade Google, o Client ID, a validade do token e a aba `Usuários`. Depois dessa validação, o backend emite uma sessão interna assinada, válida por até 16 horas e mantida somente na aba atual do navegador. Cada chamada continua verificando se o usuário permanece ativo na aba `Usuários`.
 
 ## 4. Publicar no GitHub Pages
 

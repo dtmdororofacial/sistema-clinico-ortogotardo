@@ -3,6 +3,8 @@ const ROOT_FOLDER_NAME = 'Sistema Clínico Ortogotardo';
 const SPREADSHEET_NAME = 'Base clínica Ortogotardo';
 const LOCK_MINUTES = 3;
 const RESPONSE_CHUNK_SIZE = 40000;
+const SESSION_DURATION_HOURS = 16;
+const SESSION_TOKEN_PREFIX = 'ortogotardo.v1.';
 
 const SHEETS = {
   patients: ['codigo_paciente', 'nome', 'data_nascimento', 'criado_em', 'criado_por', 'equipe_emails', 'ativo'],
@@ -104,7 +106,15 @@ function dispatch_(request) {
   const user = requireAuthorizedUser_(identity.email);
   const payload = request.payload || {};
 
-  if (action === 'bootstrap') return bootstrap_(user);
+  if (action === 'bootstrap') {
+    const result = bootstrap_(user);
+    const session = identity.source === 'google'
+      ? createSessionToken_(identity)
+      : { token: request.idToken, expiresAt: new Date(identity.exp * 1000).toISOString() };
+    result.sessionToken = session.token;
+    result.sessionExpiresAt = session.expiresAt;
+    return result;
+  }
   if (action === 'acquireLock') return acquireAttendanceLock_(user, payload);
   if (action === 'releaseLock') return releaseAttendanceLock_(user, payload);
   if (action === 'saveDraft') return saveAttendance_(user, payload, false);
@@ -150,6 +160,7 @@ function setUserAccess_(user, payload) {
 
 function verifyIdentity_(idToken) {
   if (!idToken) throw new Error('Faça login com uma Conta Google autorizada.');
+  if (String(idToken).indexOf(SESSION_TOKEN_PREFIX) === 0) return verifySessionToken_(String(idToken));
   const clientId = PropertiesService.getScriptProperties().getProperty('GOOGLE_CLIENT_ID');
   if (!clientId) throw new Error('GOOGLE_CLIENT_ID ainda não foi configurado.');
 
@@ -166,7 +177,95 @@ function verifyIdentity_(idToken) {
   if (tokenInfo.aud !== clientId) throw new Error('O login foi emitido para outro aplicativo.');
   if (String(tokenInfo.email_verified) !== 'true') throw new Error('O e-mail Google não está verificado.');
   if (Number(tokenInfo.exp) * 1000 <= Date.now()) throw new Error('A sessão expirou. Entre novamente.');
-  return { email: String(tokenInfo.email).toLowerCase(), name: String(tokenInfo.name || tokenInfo.email) };
+  return { email: String(tokenInfo.email).toLowerCase(), name: String(tokenInfo.name || tokenInfo.email), source: 'google' };
+}
+
+function createSessionToken_(identity) {
+  const issuedAt = Math.floor(Date.now() / 1000);
+  const expiresAt = issuedAt + SESSION_DURATION_HOURS * 60 * 60;
+  const payload = base64WebSafeEncode_(JSON.stringify({
+    v: 1,
+    email: String(identity.email).toLowerCase(),
+    name: String(identity.name || identity.email),
+    iat: issuedAt,
+    exp: expiresAt,
+  }));
+  const signature = signSessionPayload_(payload);
+  return {
+    token: SESSION_TOKEN_PREFIX + payload + '.' + signature,
+    expiresAt: new Date(expiresAt * 1000).toISOString(),
+  };
+}
+
+function verifySessionToken_(token) {
+  const encoded = token.slice(SESSION_TOKEN_PREFIX.length);
+  const parts = encoded.split('.');
+  if (parts.length !== 2 || !timingSafeEqual_(signSessionPayload_(parts[0]), parts[1])) {
+    throw new Error('A sessão do sistema não pôde ser validada. Entre novamente.');
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(base64WebSafeDecode_(parts[0]));
+  } catch (error) {
+    throw new Error('A sessão do sistema não pôde ser validada. Entre novamente.');
+  }
+  if (Number(payload.v) !== 1 || !payload.email || !payload.exp) {
+    throw new Error('A sessão do sistema não pôde ser validada. Entre novamente.');
+  }
+  if (Number(payload.exp) * 1000 <= Date.now()) {
+    throw new Error('A sessão do sistema expirou. Entre novamente.');
+  }
+  return {
+    email: String(payload.email).toLowerCase(),
+    name: String(payload.name || payload.email),
+    source: 'session',
+    exp: Number(payload.exp),
+  };
+}
+
+function signSessionPayload_(payload) {
+  return Utilities.base64EncodeWebSafe(
+    Utilities.computeHmacSha256Signature(payload, getSessionSecret_())
+  ).replace(/=+$/, '');
+}
+
+function getSessionSecret_() {
+  const properties = PropertiesService.getScriptProperties();
+  let secret = properties.getProperty('SESSION_SECRET');
+  if (secret) return secret;
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    secret = properties.getProperty('SESSION_SECRET');
+    if (!secret) {
+      secret = Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid();
+      properties.setProperty('SESSION_SECRET', secret);
+    }
+    return secret;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function base64WebSafeEncode_(value) {
+  return Utilities.base64EncodeWebSafe(value, Utilities.Charset.UTF_8).replace(/=+$/, '');
+}
+
+function base64WebSafeDecode_(value) {
+  let padded = value;
+  while (padded.length % 4) padded += '=';
+  return Utilities.newBlob(Utilities.base64DecodeWebSafe(padded)).getDataAsString('UTF-8');
+}
+
+function timingSafeEqual_(left, right) {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return difference === 0;
 }
 
 function requireAuthorizedUser_(email) {

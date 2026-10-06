@@ -32,6 +32,8 @@ export type BootstrapResult = {
   patients: PatientSummary[];
   attendances: AttendanceSummary[];
   serverTime: string;
+  sessionToken?: string;
+  sessionExpiresAt?: string;
 };
 
 type RpcResponse<T> = {
